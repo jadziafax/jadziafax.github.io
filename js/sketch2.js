@@ -1,47 +1,64 @@
-let desertColors = [];
+let angle = 0;
+let zoom = 1;
+let spiralSpeed = 0.05; // Speed of spiral rotation
+let centerX, centerY;
+let shiftSpeedX = 1; // Speed of center shifting horizontally
+let shiftSpeedY = 1; // Speed of center shifting vertically
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(220, 180, 140); // Initial desert tone
+  background(255); // White background
   
-  // Define desert-inspired color palette
-  desertColors = [
-    color(204, 102, 0),   // Orange
-    color(153, 102, 51),  // Brown
-    color(230, 200, 100), // Yellow
-    color(100, 150, 120), // Faded green
-    color(180, 90, 60)    // Muted red
-  ];
-  
-  // No stroke for static elements
-  noStroke();
+  centerX = width / 2;
+  centerY = height / 2;
 }
 
 function draw() {
-  // Add the background color to create the illusion of new static each frame
-  fill(220, 180, 140, 20); // Semi-transparent background for trailing effect
-  rect(0, 0, width, height);
+  background(255); // Clear background each frame
   
-  // Draw fast-moving static to simulate busy falling rain
-  for (let i = 0; i < 500; i++) {
-    let x = random(width);
-    let y = random(height);
-    let length = random(5, 20);
-    let thickness = random(1, 3);
-    
-    fill(random(desertColors)); // Pick a random desert color for each line
-    
-    // Draw a vertical line (rain streak) for the static
-    rect(x, y, thickness, length);
-  }
+  // Move the spiral center around to simulate a moving drain
+  centerX += shiftSpeedX;
+  centerY += shiftSpeedY;
   
-  // Optionally add some smaller dots for more 'static' noise
-  for (let i = 0; i < 200; i++) {
-    let x = random(width);
-    let y = random(height);
-    let size = random(1, 5);
-    
-    fill(random(desertColors));
-    ellipse(x, y, size, size);
+  // Reverse direction when the center hits canvas edges
+  if (centerX < 0 || centerX > width) shiftSpeedX *= -1;
+  if (centerY < 0 || centerY > height) shiftSpeedY *= -1;
+
+  // Translate to the moving center and apply zoom/rotation
+  translate(centerX, centerY);
+  scale(zoom);
+  rotate(angle);
+  
+  // Draw the spiral tunnel using black and white tiles
+  drawSpiralTunnel(30, 40);
+  
+  // Increment angle for continuous rotation
+  angle += spiralSpeed;
+  
+  // Gradually zoom in
+  zoom *= 1.02;
+  
+  // Reset zoom after a certain level for looping effect
+  if (zoom > 10) zoom = 1;
+}
+
+// Function to draw the black-and-white swirling tunnel
+function drawSpiralTunnel(numSlices, sliceWidth) {
+  let totalSlices = TWO_PI / numSlices; // Number of slices around the circle
+  let radius = sliceWidth;
+
+  for (let r = 0; r < width * 2; r += radius) {
+    for (let i = 0; i < TWO_PI; i += totalSlices) {
+      let colorIndex = (i / totalSlices) % 2;
+      if (colorIndex == 0) fill(0); // Black tiles
+      else fill(255); // White tiles
+
+      // Draw triangular "tile" slices, creating the swirling tunnel illusion
+      beginShape();
+      vertex(0, 0); // Center of the spiral
+      vertex(cos(i) * r, sin(i) * r); // Outer edge of the slice
+      vertex(cos(i + totalSlices) * r, sin(i + totalSlices) * r); // Next outer edge
+      endShape(CLOSE);
+    }
   }
 }
